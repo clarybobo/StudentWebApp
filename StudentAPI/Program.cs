@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Net.Http.Headers;
 using StudentAPI.Data;
 using StudentAPI.Data.Interfaces;
 using StudentAPI.Data.Repositories;
@@ -17,7 +18,20 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<IStudent, StudentRepo>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecific", policy =>
+    {
+        policy.WithOrigins("http://localhost:7170", "http://localhost:7246", "https://studentwebappnewclient.azurewebsites.net")
+              .AllowAnyHeader()
+              .WithHeaders(HeaderNames.ContentType, HeaderNames.Authorization, "x-custom-header");
+    });
+});
+
+
 var app = builder.Build();
+
+app.UseCors("AllowSpecific");
 
 // Seeder
 using (var scope = app.Services.CreateScope())
