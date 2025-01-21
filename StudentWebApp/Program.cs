@@ -1,3 +1,4 @@
+using Microsoft.Net.Http.Headers;
 using StudentWebApp.Data.Interfaces;
 using StudentWebApp.Data.Services;
 
@@ -17,28 +18,56 @@ builder.Services.AddScoped<IStudentService, StudentService>();
 //builder.Services.AddHttpClient<IStudentService, StudentService>(client =>
 //client.BaseAddress = new Uri("https://localhost:7246/"));
 
+//GAMMAL - numera är BaseUrl BORTA från ApiSettings!! 
+//builder.Services.AddHttpClient<IStudentService, StudentService>(client =>
+//{
+//    var baseUrl = builder.Configuration["ApiSettings:BaseUrl"];
+//    if (string.IsNullOrEmpty(baseUrl))
+//    {
+//        throw new InvalidOperationException("BaseUrl är inte konfigurerad i appsettings.json.");
+//    }
+//    client.BaseAddress = new Uri(baseUrl);
+//});
+
+// Hårdkodad BaseUrl
 builder.Services.AddHttpClient<IStudentService, StudentService>(client =>
 {
-var baseUrl = builder.Configuration["ApiSettings:BaseUrl"];
-    if (string.IsNullOrEmpty(baseUrl))
-    {
-        throw new InvalidOperationException("BaseUrl är inte konfigurerad i appsettings.json.");
-    }
-    client.BaseAddress = new Uri(baseUrl);
+    // Ange direkt BaseUrl här för API:t
+    client.BaseAddress = new Uri("https://studentapi-app-new.calmtree-16028aa1.northeurope.azurecontainerapps.io"); // Exempel för lokal utveckling
+    ;
 });
-
-
 
 // TODO: OK med AllowAnyOrigin på CORS?? 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAllOrigins", policy =>
-    {
-        policy.AllowAnyOrigin()
-        .AllowAnyMethod()
-        .AllowAnyHeader();
-    });
-});
+// API https://localhost:7246/
+// WEBAPP https://localhost:7277/ 
+// Azure 
+
+// Gamla fungerande Cors 
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowAllOrigins", policy =>
+//    {
+//        policy.AllowAnyOrigin()
+//        .AllowAnyMethod()
+//        .AllowAnyHeader();
+//    });
+//});
+
+//Nya Cors
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowedOrigins", policy =>
+//    {
+//        policy.WithOrigins(
+//            "https://localhost:7246/", //API 
+//            "https://localhost:7277/" //WebApp
+//                                      //TODO: Lägg till origins för azure
+//         )
+//        .WithMethods("GET")
+//        .WithHeaders("Content-Type");
+//    });
+//});
+
 
 builder.Services.AddRazorPages();
 
@@ -52,10 +81,20 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+//Suzies CORS 
+app.UseCors(policy =>
+policy.WithOrigins("https://localhost:7246/", "https://localhost:7277/", "https://studentwebappclient20250120153311.azurewebsites.net")
+.AllowAnyMethod()
+.WithHeaders(HeaderNames.ContentType, HeaderNames.Authorization, "x-custom-header"));
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+//TODO: kommentera ut när nya cors ska användas
+//app.UseCors("AllowedOrigins");
+
 
 app.UseAuthorization();
 

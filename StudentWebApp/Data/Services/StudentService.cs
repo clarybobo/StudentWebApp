@@ -26,7 +26,6 @@ namespace StudentWebApp.Data.Services
                 {
                     throw new Exception($"API-fel: {response.ReasonPhrase}");
                 }
-
             }
             catch (Exception ex)
             {
